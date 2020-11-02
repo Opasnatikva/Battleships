@@ -61,33 +61,32 @@ def user_input(ships = ships):
     return ship_type, key, line_index
 
 
-def placement_check(ship_type, orientation, row, column, player):
+def placement_check(board, ship_type, orientation, row, column, player):
     # Boundary check
     if orientation == "h":
-        if string.ascii_uppercase.index(row) + ship_type > BOARD_SIZE:
+        if column + (ship_type - 1) > BOARD_SIZE:
             return False
     else:
-        if column + (ship_type - 1) > BOARD_SIZE:
+        if string.ascii_uppercase.index(row) + ship_type > BOARD_SIZE:
             return False
     if player:
         player_board = "usa"
     else:
         player_board = "ussr"
     if orientation == "h":
-        for field in boards[player_board]["ships"][row][column - 1:column - 1 + ship_type]:
-            if field == SHIP_FIELD:
-                print("A ship already occupies one or more of those fields, commander!")
+        for cell in range(column - 1, column - 1 + ship_type):
+            if boards[player_board]["ships"][row][cell] == SHIP_FIELD:
                 return False
     else:
         start = string.ascii_uppercase.index(row)
-        for line in string.ascii_uppercase[start:start + ship_type]:
-            if boards[player_board]["ships"][line][column] == SHIP_FIELD:
-                print("A ship already occupies one or more of those fields, commander!")
+        stop = start + ship_type - 1
+        for key in string.ascii_uppercase[start:stop]:
+            if boards[player_board]["ships"][key][column] == SHIP_FIELD:
                 return False
     return True
 
 
-def place_ship(ship_type, player, orientation, row, column):
+def place_ship(boards, ship_type, player, orientation, row, column):
     if player:
         board = boards["usa"]["ships"]
     else:
@@ -99,6 +98,7 @@ def place_ship(ship_type, player, orientation, row, column):
         start = string.ascii_uppercase.index(row)
         for row_index in string.ascii_uppercase[start:start + ship_type]:
             board[row_index][column - 1] = SHIP_FIELD
+
 
 def print_both_boards(player=player_one):
     if player:
@@ -121,15 +121,22 @@ if __name__ == '__main__':
     main()
 
 boards = generate_initial_boards()
-boards["usa"]["ships"]["G"][6] = SHIP_FIELD
-ship_len = 5
-orient = "v"
-row_row = "F"
-col_col = 6
-if placement_check(ship_len, orient, row_row, col_col, True):
-    place_ship(ship_len, player_one, orient, row_row, col_col)
+ship_type = 5
+orient = "h"
+row_row = "C"
+col_col = 1
+if placement_check(boards, ship_type, orient, row_row, col_col, True):
+    place_ship(boards, ship_type, player_one, orient, row_row, col_col)
 else:
-    print("Please give us different coordinates sir!")
+    print("No can do sir!1")
+ship_type = 5
+orient = "v"
+row_row = "A"
+col_col = 5
+if placement_check(boards, ship_type, orient, row_row, col_col, True):
+    place_ship(boards, ship_type, player_one, orient, row_row, col_col)
+else:
+    print("No can do sir!2")
 print_both_boards()
 # while True:
 #     print_both_boards()
