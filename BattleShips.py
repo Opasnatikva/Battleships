@@ -5,17 +5,16 @@ BLANK_STATE = " "
 HIT_BLANK_FIELD = "*"
 SHIP_FIELD = "+"
 HIT_SHIP_FIELD = "X"
-player_one = True
-nation = ["usa", "ussr"]
-board_type = ["ships", "shots"]
-ships = {
+NATION = ["usa", "ussr"]
+BOARD_TYPE = ["ships", "shots"]
+SHIPS = {
     "carrier": 5,
     "battleship": 4,
     "cruiser": 3,
     "submarine": 3,
     "destroyer": 2
 }
-used_ships = []
+player_one = True
 
 
 # orientation = input("Please choose the orientation of your ship! Type \"H\" for horizontal or \"V\" for vertical)!")
@@ -41,25 +40,47 @@ def print_board(board):
 
 def generate_initial_boards():
     boards = {}
-    for index in nation:
+    for index in NATION:
         boards[index] = {}
-        for boardtype in board_type:
+        for boardtype in BOARD_TYPE:
             boards[index][boardtype] = generate_board()
     return boards
 
 
-def user_input(ships = ships):
-    ship_name = input("Please choose the ship you would like to place! Your options are " + str(list(ships.keys())))
-    ship_type = ships[ship_name]
-    orient = input("Would you like to ship to be vertically or horizontally positioned, commander? Please type \"h\" for horizontal, or \"v\" for vertical!")
-    if orient == "h":
-        coors = input("Please provide us with coordinates for the ship, commander! The ship will be placed to the right starting at the provided value.")
+def user_input():
+    correct_input = False
+    while not correct_input:
+        orient = input(
+            "Would you like your " + "carrier" + " to be vertically or horizontally positioned, commander? Please type \"h\" for horizontal, or \"v\" for vertical!")
+        orient = orient.lower()
+        if orient == 'h' or orient == 'v':
+            correct_input = True
+        else:
+            print("Please insert correct orientation!")
+    correct_input = False
+    if orient == 'h':
+        message = "Please provide us with coordinates for the " + "carrier" + ", commander! The ship will be placed to the right starting at the provided value. For example \"A1\""
     else:
-        coors = input("Please provide us with coordinates for the ship, commander! The ship will be placed downwards from the provided value.")
+        message = "Please provide us with coordinates for the " + "carrier" + ", commander! The ship will be placed downwards from the provided value. For example \"A1\"."
+    while not correct_input:
+        coors = input(message)
+        coors = coors.upper()
+        if 1 < len(coors) < 4 and coors[0] in string.ascii_uppercase[0:10] and coors[1:].isdigit() and 0 < int(
+                coors[1:]) <= 10:
+            correct_input = True
+        else:
+            print("Please insert correct coordinates!")
     key = coors[0]
-    line_index = int(coors[1])
-    return ship_type, key, line_index
+    line_index = int(coors[1:])
+    return orient, key, line_index
 
+
+def input_and_check(board, ship_type, player = True):
+    input_correct = False
+    while not input_correct:
+        orientation, row, column = user_input()
+        input_correct = placement_check(board, ship_type, orientation, row, column, player)
+    return orientation, row, column
 
 def placement_check(board, ship_type, orientation, row, column, player):
     # Boundary check
@@ -86,7 +107,7 @@ def placement_check(board, ship_type, orientation, row, column, player):
     return True
 
 
-def place_ship(boards, ship_type, player, orientation, row, column):
+def place_ship(boards, player, ship_type, orientation, row, column):
     if player:
         board = boards["usa"]["ships"]
     else:
@@ -126,7 +147,7 @@ orient = "h"
 row_row = "C"
 col_col = 1
 if placement_check(boards, ship_type, orient, row_row, col_col, True):
-    place_ship(boards, ship_type, player_one, orient, row_row, col_col)
+    place_ship(boards,  player_one,ship_type, orient, row_row, col_col)
 else:
     print("No can do sir!1")
 ship_type = 5
@@ -134,13 +155,17 @@ orient = "v"
 row_row = "A"
 col_col = 5
 if placement_check(boards, ship_type, orient, row_row, col_col, True):
-    place_ship(boards, ship_type, player_one, orient, row_row, col_col)
+    place_ship(boards, player_one, ship_type, orient, row_row, col_col)
 else:
     print("No can do sir!2")
 print_both_boards()
+print(input_and_check(boards, 5))
+# boards = generate_initial_boards()
+#
 # while True:
 #     print_both_boards()
 #
-#
-#
 #     player_one = not player_one
+
+
+# Collision between ships need to debug the finction that checks for previously placed ones
