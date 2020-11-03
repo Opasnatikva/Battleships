@@ -42,9 +42,18 @@ def generate_initial_boards():
     boards = {}
     for index in NATION:
         boards[index] = {}
-        for boardtype in BOARD_TYPE:
-            boards[index][boardtype] = generate_board()
+        for board_type in BOARD_TYPE:
+            boards[index][board_type] = generate_board()
     return boards
+
+
+def print_both_boards(player=player_one):
+    if player:
+        player_board = NATION[0]
+    else:
+        player_board = NATION[1]
+    print_board(boards[player_board][BOARD_TYPE[0]])
+    print_board(boards[player_board][BOARD_TYPE[1]])
 
 
 def user_input():
@@ -71,67 +80,99 @@ def user_input():
         else:
             print("Please insert correct coordinates!")
     key = coors[0]
-    line_index = int(coors[1:])
-    return orient, key, line_index
+    logical_column = int(coors[1:] - 1)
+    return orient, key, logical_column
 
 
-def input_and_check(board, ship_type, player = True):
+def input_and_check(board, ship_type, player=True):
     input_correct = False
     while not input_correct:
         orientation, row, column = user_input()
         input_correct = placement_check(board, ship_type, orientation, row, column, player)
     return orientation, row, column
 
-def placement_check(board, ship_type, orientation, row, column, player):
+
+def placement_check(board, ship_type, orientation, row, logical_column, player):
     # Boundary check
     if orientation == "h":
-        if column + (ship_type - 1) > BOARD_SIZE:
+        if logical_column + ship_type > BOARD_SIZE:
             return False
     else:
         if string.ascii_uppercase.index(row) + ship_type > BOARD_SIZE:
             return False
     if player:
-        player_board = "usa"
+        player_board = NATION[0]
     else:
-        player_board = "ussr"
+        player_board = NATION[1]
+    #     Collision check
     if orientation == "h":
-        for cell in range(column - 1, column - 1 + ship_type):
-            if boards[player_board]["ships"][row][cell] == SHIP_FIELD:
+        for cell in range(logical_column, logical_column + ship_type):
+            if boards[player_board][BOARD_TYPE[0]][row][cell] == SHIP_FIELD:
                 return False
     else:
         start = string.ascii_uppercase.index(row)
         stop = start + ship_type - 1
         for key in string.ascii_uppercase[start:stop]:
-            if boards[player_board]["ships"][key][column] == SHIP_FIELD:
+            if boards[player_board][BOARD_TYPE[0]][key][logical_column] == SHIP_FIELD:
                 return False
     return True
 
 
-def place_ship(boards, player, ship_type, orientation, row, column):
+def place_ship(boards, player, ship_type, orientation, row, logical_column):
     if player:
-        board = boards["usa"]["ships"]
+        board = boards[NATION[0]][BOARD_TYPE[0]]
     else:
-        board = boards["ussr"]["ships"]
+        board = boards[NATION[1]][BOARD_TYPE[0]]
     if orientation == "h":
-        for col_index in range(column - 1, column + ship_type - 1):
+        for col_index in range(logical_column, logical_column + ship_type):
             board[row][col_index] = SHIP_FIELD
     else:
         start = string.ascii_uppercase.index(row)
         for row_index in string.ascii_uppercase[start:start + ship_type]:
-            board[row_index][column - 1] = SHIP_FIELD
+            board[row_index][logical_column] = SHIP_FIELD
 
 
-def print_both_boards(player=player_one):
+def user_hit_input():
+    correct_input = False
+    while not correct_input:
+        coors = input("Point us towards the target, captain!")
+        coors = coors.upper()
+        if 1 < len(coors) < 4 and coors[0] in string.ascii_uppercase[0:10] and coors[1:].isdigit() and 0 < int(
+                coors[1:]) <= 10:
+            correct_input = True
+        else:
+            print("Please insert correct coordinates!")
+    key = coors[0]
+    logical_column = int(coors[1:] - 1)
+    return key, logical_column
+
+
+def already_hit(boards, key, logical_column):
+    if boards[key][logical_column] != HIT_SHIP_FIELD and HIT_BLANK_FIELD:
+        return True
+    return False
+
+
+def place_hit(board, key, logical_column):
+    if board[key][logical_column] == SHIP_FIELD:
+        board[key][logical_column] = HIT_SHIP_FIELD
+
+
+def fire_weapons(boards, player):
     if player:
-        player_board = "usa"
+        ship_board = boards[NATION[0]][BOARD_TYPE[0]]
+        shot_board = boards[NATION[1]][BOARD_TYPE[1]]
     else:
-        player_board = "ussr"
-    print_board(boards[player_board]["ships"])
-    print_board(boards[player_board]["shots"])
-
-
-def hit():
-    pass
+        ship_board = boards[NATION[1]][BOARD_TYPE[0]]
+        shot_board = boards[NATION[0]][BOARD_TYPE[1]]
+    correct_input = False
+    while not correct_input:
+        coordinates = user_hit_input()
+        key = coordinates[0]
+        col_index = coordinates[1:]
+        if not already_hit(boards, key, col_index):
+            correct_input = True
+    place_hit(boards, player, key, col_index)
 
 
 def main():
@@ -145,15 +186,15 @@ boards = generate_initial_boards()
 ship_type = 5
 orient = "h"
 row_row = "C"
-col_col = 1
+col_col = 0
 if placement_check(boards, ship_type, orient, row_row, col_col, True):
-    place_ship(boards,  player_one,ship_type, orient, row_row, col_col)
+    place_ship(boards, player_one, ship_type, orient, row_row, col_col)
 else:
     print("No can do sir!1")
 ship_type = 5
 orient = "v"
 row_row = "A"
-col_col = 5
+col_col = 4
 if placement_check(boards, ship_type, orient, row_row, col_col, True):
     place_ship(boards, player_one, ship_type, orient, row_row, col_col)
 else:
