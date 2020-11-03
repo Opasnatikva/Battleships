@@ -47,7 +47,7 @@ def generate_initial_boards():
     return boards
 
 
-def print_both_boards(player=player_one):
+def print_both_boards(player):
     if player:
         player_board = NATION[0]
     else:
@@ -80,19 +80,19 @@ def user_input():
         else:
             print("Please insert correct coordinates!")
     key = coors[0]
-    logical_column = int(coors[1:] - 1)
+    logical_column = int(coors[1:]) - 1
     return orient, key, logical_column
 
 
-def input_and_check(board, ship_type, player=True):
+def input_and_check(board, ship_type, player):
     input_correct = False
     while not input_correct:
-        orientation, row, column = user_input()
-        input_correct = placement_check(board, ship_type, orientation, row, column, player)
-    return orientation, row, column
+        orientation, row, logical_column = user_input()
+        input_correct = placement_check(board, ship_type, orientation, row, logical_column, player)
+    return orientation, row, logical_column
 
 
-def placement_check(board, ship_type, orientation, row, logical_column, player):
+def placement_check(boards, ship_type, orientation, row, logical_column, player):
     # Boundary check
     if orientation == "h":
         if logical_column + ship_type > BOARD_SIZE:
@@ -142,13 +142,11 @@ def user_hit_input():
             correct_input = True
         else:
             print("Please insert correct coordinates!")
-    key = coors[0]
-    logical_column = int(coors[1:] - 1)
-    return key, logical_column
+    return coors
 
 
-def already_hit(boards, key, logical_column):
-    if boards[key][logical_column] != HIT_SHIP_FIELD and HIT_BLANK_FIELD:
+def already_hit(board, key, logical_column):
+    if board[key][logical_column] is not HIT_SHIP_FIELD and not HIT_BLANK_FIELD:
         return True
     return False
 
@@ -156,23 +154,46 @@ def already_hit(boards, key, logical_column):
 def place_hit(board, key, logical_column):
     if board[key][logical_column] == SHIP_FIELD:
         board[key][logical_column] = HIT_SHIP_FIELD
+    else:
+        board[key][logical_column] = HIT_BLANK_FIELD
 
 
 def fire_weapons(boards, player):
     if player:
-        ship_board = boards[NATION[0]][BOARD_TYPE[0]]
-        shot_board = boards[NATION[1]][BOARD_TYPE[1]]
-    else:
         ship_board = boards[NATION[1]][BOARD_TYPE[0]]
         shot_board = boards[NATION[0]][BOARD_TYPE[1]]
+    else:
+        ship_board = boards[NATION[0]][BOARD_TYPE[0]]
+        shot_board = boards[NATION[1]][BOARD_TYPE[1]]
     correct_input = False
     while not correct_input:
         coordinates = user_hit_input()
         key = coordinates[0]
-        col_index = coordinates[1:]
-        if not already_hit(boards, key, col_index):
+        col_index = int(coordinates[1:]) - 1
+        if not already_hit(ship_board, key, col_index):
             correct_input = True
-    place_hit(boards, player, key, col_index)
+    place_hit(ship_board, key, col_index)
+    place_hit(shot_board, key, col_index)
+
+
+def game_over(boards, player_one):
+    if player_one:
+        player_board = NATION[1]
+    else:
+        player_board = NATION[0]
+    for value in boards[player_board][BOARD_TYPE[0]].values():
+        for element in value:
+            if element == SHIP_FIELD:
+                return False
+    return True
+
+
+def win_condition(player):
+    if player:
+        winner = NATION[0]
+    else:
+        winner = NATION[1]
+    print("Congratulations " + winner + "! You have vanquished all of the enemy\'s ships!")
 
 
 def main():
@@ -181,32 +202,36 @@ def main():
 
 if __name__ == '__main__':
     main()
+#
+# boards = generate_initial_boards()
+# ship_type = 5
+# orient = "h"
+# row_row = "C"
+# col_col = 0
+# if placement_check(boards, ship_type, orient, row_row, col_col, True):
+#     place_ship(boards, player_one, ship_type, orient, row_row, col_col)
+# else:
+#     print("No can do sir!1")
+# ship_type = 5
+# orient = "v"
+# row_row = "A"
+# col_col = 4
+# if placement_check(boards, ship_type, orient, row_row, col_col, True):
+#     place_ship(boards, player_one, ship_type, orient, row_row, col_col)
+# else:
+#     print("No can do sir!2")
+# print_both_boards()
 
 boards = generate_initial_boards()
-ship_type = 5
-orient = "h"
-row_row = "C"
-col_col = 0
-if placement_check(boards, ship_type, orient, row_row, col_col, True):
-    place_ship(boards, player_one, ship_type, orient, row_row, col_col)
-else:
-    print("No can do sir!1")
-ship_type = 5
-orient = "v"
-row_row = "A"
-col_col = 4
-if placement_check(boards, ship_type, orient, row_row, col_col, True):
-    place_ship(boards, player_one, ship_type, orient, row_row, col_col)
-else:
-    print("No can do sir!2")
-print_both_boards()
-print(input_and_check(boards, 5))
-# boards = generate_initial_boards()
-#
-# while True:
-#     print_both_boards()
-#
-#     player_one = not player_one
+for index in range(2):
+    for value in SHIPS.values():
+        print_both_boards(player_one)
+        orientation, row, logical_column = input_and_check(boards, value, player_one)
+        place_ship(boards, player_one, value, orientation, row, logical_column)
+    player_one = not player_one
+while not game_over(boards, player_one):
+    print_both_boards(player_one)
+    fire_weapons(boards, player_one)
+    game_over(boards, player_one)
+    player_one = not player_one
 
-
-# Collision between ships need to debug the finction that checks for previously placed ones
