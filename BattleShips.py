@@ -17,9 +17,6 @@ SHIPS = {
 player_one = True
 
 
-# orientation = input("Please choose the orientation of your ship! Type \"H\" for horizontal or \"V\" for vertical)!")
-
-
 def generate_board(size=BOARD_SIZE):
     board = {}
     for letter in string.ascii_uppercase[:size]:
@@ -58,6 +55,8 @@ def print_both_boards(player):
 
 def user_input():
     correct_input = False
+    coors = ''
+    orient = ''
     while not correct_input:
         orient = input(
             "Would you like your " + "carrier" + " to be vertically or horizontally positioned, commander? Please type \"h\" for horizontal, or \"v\" for vertical!")
@@ -86,6 +85,9 @@ def user_input():
 
 def input_and_check(board, ship_type, player):
     input_correct = False
+    orientation = ''
+    row = ''
+    logical_column = ''
     while not input_correct:
         orientation, row, logical_column = user_input()
         input_correct = placement_check(board, ship_type, orientation, row, logical_column, player)
@@ -134,6 +136,7 @@ def place_ship(boards, player, ship_type, orientation, row, logical_column):
 
 def user_hit_input():
     correct_input = False
+    coors = ''
     while not correct_input:
         coors = input("Point us towards the target, captain!")
         coors = coors.upper()
@@ -166,6 +169,8 @@ def fire_weapons(boards, player):
         ship_board = boards[NATION[0]][BOARD_TYPE[0]]
         shot_board = boards[NATION[1]][BOARD_TYPE[1]]
     correct_input = False
+    key = ''
+    col_index = ''
     while not correct_input:
         coordinates = user_hit_input()
         key = coordinates[0]
@@ -188,7 +193,7 @@ def game_over(boards, player_one):
     return True
 
 
-def win_condition(player):
+def win_announcement(player):
     if player:
         winner = NATION[0]
     else:
@@ -234,4 +239,4 @@ while not game_over(boards, player_one):
     fire_weapons(boards, player_one)
     game_over(boards, player_one)
     player_one = not player_one
-
+win_announcement(player_one)
